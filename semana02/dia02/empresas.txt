@@ -1,0 +1,7 @@
+id,nombre,email
+1,Logitech,logitech@gmail.com
+2,Samsung,samsung@gmail.com
+3,Lenovo,lenovo@gmail.com
+5,Microsoft,microsoft@gmail.com
+6,LG,lg@gmail.com
+7,Huawei,huawei@gmail.com
