@@ -1,6 +1,8 @@
 from flask import Flask, request
+from flask_cors import CORS
 
 app = Flask(__name__)
+cors = CORS(app)
 
 usersList = []
 
@@ -20,7 +22,7 @@ def users():
             'ok': True,
             'message': 'Usuario creado correctamente',
             'data': json
-        }
+        }, 200
     
     elif method == 'GET':
         # Obtener todos los usuarios
@@ -28,7 +30,7 @@ def users():
             'ok': True,
             'message': 'Lista de usuarios obtenida correctamente',
             'data': usersList
-        }
+        }, 200
 
 @app.route('/users/<int:id>', methods=['GET', 'PUT', 'DELETE'])
 def user(id):
@@ -41,19 +43,47 @@ def user(id):
                     'ok': True,
                     'message': 'Usuario obtenido correctamente',
                     'data': user
-                }
+                }, 200
         return {
             'ok': False,
             'message': 'Usuario no encontrado',
             'data': None
-        }
+        }, 404
             
     elif method == 'PUT':
         # Actualizar un usuario
-        pass
+        json = request.get_json()
+        for user in usersList:
+            if user['id'] == id:
+                user['name'] = json['name']
+                user['email'] = json['email']
+                user['password'] = json['password']
+                return {
+                    'ok': True,
+                    'message': 'Usuario actualizado correctamente',
+                    'data': user
+                }, 200
+        return {
+            'ok': False,
+            'message': 'Usuario no encontrado',
+            'data': None
+        }, 404
+    
     elif method == 'DELETE':
         # Eliminar un usuario
-        pass
+        for user in usersList:
+            if user['id'] == id:
+                usersList.remove(user)
+                return {
+                    'ok': True,
+                    'message': 'Usuario eliminado correctamente',
+                    'data': None
+                }, 200
+        return {
+            'ok': False,
+            'message': 'Usuario no encontrado',
+            'data': None
+        }, 404
 
 if __name__ == '__main__':
     app.run(debug=True)
