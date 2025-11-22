@@ -1,0 +1,7 @@
+CREAR UNA APP FLASK
+
+- Entorno virtual
+- .gitignore, requirements.txt
+- app.py (código de la aplicación)
+- Dos rutas (GET y POST)
+- Documentación (creación, instalación, ejecución)
