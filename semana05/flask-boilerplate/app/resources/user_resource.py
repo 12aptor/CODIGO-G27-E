@@ -5,6 +5,11 @@ from flask_restful import Resource
 from app.models.user_model import User
 from db import db
 import bcrypt
+from flask_jwt_extended import (
+    create_access_token,
+    create_refresh_token,
+)
+from app.utils.helpers import CryptoHelper
 
 class RegisterResource(Resource):
     def post(self):
@@ -73,10 +78,16 @@ class LoginResource(Resource):
                 return {
                     'error': 'Email or password is incorrect'
                 }, 401
+            
+            crypto_helper = CryptoHelper()
+            hashed_id = crypto_helper.encrypt(user.id)
+
+            access_token = create_access_token(identity=hashed_id)
+            refresh_token = create_refresh_token(identity=hashed_id)
 
             response = {
-                'access_token': 'fake-j',
-                'refresh_token': 'fake-k'
+                'access_token': access_token,
+                'refresh_token': refresh_token,
             }
 
             return {
