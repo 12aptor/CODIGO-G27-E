@@ -7,3 +7,7 @@ class UserSchema(BaseModel):
     email: str
     password: Annotated[str, Field(min_length=6)]
     role_id: int
+
+class LoginSchema(BaseModel):
+    email: str
+    password: str
