@@ -10,6 +10,7 @@ from flask_jwt_extended import (
     create_refresh_token,
 )
 from app.utils.helpers import CryptoHelper
+from flask_jwt_extended import jwt_required
 
 class RegisterResource(Resource):
     def post(self):
@@ -82,7 +83,14 @@ class LoginResource(Resource):
             crypto_helper = CryptoHelper()
             hashed_id = crypto_helper.encrypt(user.id)
 
-            access_token = create_access_token(identity=hashed_id)
+            access_token = create_access_token(
+                identity=hashed_id,
+                additional_claims={
+                    'name': user.name,
+                    'last_name': user.last_name,
+                    'email': user.email
+                }
+            )
             refresh_token = create_refresh_token(identity=hashed_id)
 
             response = {
@@ -107,3 +115,28 @@ class LoginResource(Resource):
         bytes_hashed_pwd = hashed_password.encode('utf-8')
         bytes_pwd = password.encode('utf-8')
         return bcrypt.checkpw(bytes_pwd, bytes_hashed_pwd)
+    
+class UserResource(Resource):
+    @jwt_required()
+    def get(self):
+        try:
+            users = User.query.all()
+
+            response = []
+            for user in users:
+                response.append({
+                    'id': user.id,
+                    'name': user.name,
+                    'last_name': user.last_name,
+                    'email': user.email,
+                    'role_id': user.role_id
+                })
+
+            return {
+                'message': 'Users fetched successfully',
+                'data': response
+            }, 200
+        except Exception as e:
+            return {
+                'error': str(e)
+            }, 400
