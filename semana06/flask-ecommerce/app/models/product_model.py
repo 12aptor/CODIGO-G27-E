@@ -8,6 +8,7 @@ from sqlalchemy import (
     Boolean,
     ForeignKey,
 )
+from sqlalchemy.orm import relationship
 
 class Product(db.Model):
     __tablename__ = 'products'
@@ -22,3 +23,5 @@ class Product(db.Model):
     stock = Column(Integer, nullable=False)
     status = Column(Boolean, default=True)
     category_id = Column(Integer, ForeignKey('categories.id'), nullable=False)
+
+    category = relationship('Category')

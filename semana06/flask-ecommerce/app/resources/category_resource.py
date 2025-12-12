@@ -35,7 +35,7 @@ class CategoyResource(Resource):
         
     def get(self):
         try:
-            categories = Category.query.all()
+            categories = Category.query.filter_by(status=True)
 
             response = []
             for category in categories:
@@ -106,6 +106,27 @@ class ManageCategoryResource(Resource):
             return {
                 'error': e.errors()
             }, 400
+        except Exception as e:
+            return {
+                'error': str(e)
+            }, 400
+        
+    def delete(self, id):
+        try:
+            category = Category.query.get(id)
+
+            if not category:
+                return {
+                    'error': 'Category not found'
+                }, 404
+            
+            category.status = False
+
+            db.session.commit()
+
+            return {
+                'message': 'Category deleted successfully'
+            }, 200
         except Exception as e:
             return {
                 'error': str(e)
