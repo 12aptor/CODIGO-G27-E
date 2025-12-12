@@ -10,4 +10,13 @@ db.init_app(app)
 migrate = Migrate(app, db)
 jwt = JWTManager(app)
 
+from app.models.category_model import Category
+from app.models.customer_model import Customer
+from app.models.product_model import Product
+from app.models.role_model import Role
+from app.models.sale_detail_model import SaleDetail
+from app.models.sale_model import Sale
+from app.models.update_product_log_model import UpdateProductLog
+from app.models.user_model import User
+
 from app import routes
