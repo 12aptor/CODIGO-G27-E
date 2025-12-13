@@ -110,3 +110,142 @@ class ProductResource(Resource):
             return {
                 'error': str(e)
             }, 400
+        
+class ManageProductResource(Resource):
+    def get(self, product_id):
+        try:
+            product = Product.query.get(product_id)
+
+            if not product:
+                return {
+                    'error': 'Product not found'
+                }, 404
+            
+            return {
+                'message': 'Product fetched successfully',
+                'data': {
+                    'id': product.id,
+                    'code': f'P-{str(product.id).zfill(4)}',
+                    'name': product.name,
+                    'description': product.description,
+                    'image': cloudinary_helper.get_secure_url(product.image),
+                    'brand': product.brand,
+                    'size': product.size,
+                    'price': product.price,
+                    'stock': product.stock,
+                    'status': product.status,
+                    'category': {
+                        'id': product.category.id,
+                        'name': product.category.name,
+                        'status': product.category.status
+                    }
+                }
+            }, 200
+        except Exception as e:
+            return {
+                'error': str(e)
+            }, 400
+
+    def put(self, product_id):
+        try:
+            data = request.form
+            validated_data = ProductSchema(**data)
+
+            image = request.files.get('image')
+
+            product = Product.query.get(product_id)
+
+            if not product:
+                return {
+                    'error': 'Product not found'
+                }, 404
+            
+            if image:
+                if image.filename == '':
+                    return {
+                        'error': 'Image is required'
+                    }, 400
+                
+                if not image.content_type.startswith('image/'):
+                    return {
+                        'error': 'Invalid image type'
+                    }, 400
+                
+                delete_response = cloudinary_helper.delete_image(product.image)
+
+                if not delete_response:
+                    return {
+                        'error': 'Error deleting image'
+                    }, 400
+
+                secure_url, public_id = cloudinary_helper.upload_image(image, 'products')
+
+                if not secure_url:
+                    return {
+                        'error': 'Error uploading image'
+                    }, 400
+                
+                product.image = public_id
+            
+            product.name = validated_data.name
+            product.description = validated_data.description
+            product.brand = validated_data.brand
+            product.size = validated_data.size
+            product.price = validated_data.price
+            product.stock = validated_data.stock
+            product.category_id = validated_data.category_id
+
+            db.session.commit()
+
+            return {
+                'message': 'Product updated successfully',
+                'data': {
+                    'id': product.id,
+                    'code': f'P-{str(product.id).zfill(4)}',
+                    'name': product.name,
+                    'description': product.description,
+                    'image': cloudinary_helper.get_secure_url(product.image),
+                    'brand': product.brand,
+                    'size': product.size,
+                    'price': product.price,
+                    'stock': product.stock,
+                    'status': product.status,
+                    'category': {
+                        'id': product.category.id,
+                        'name': product.category.name,
+                        'status': product.category.status
+                    }
+                }
+            }, 200
+        except Exception as e:
+            return {
+                'error': str(e)
+            }, 400
+
+    def delete(self, product_id):
+        try:
+            product = Product.query.get(product_id)
+
+            if not product:
+                return {
+                    'error': 'Product not found'
+                }, 404
+            
+            cloudinary_response = cloudinary_helper.delete_image(product.image)
+
+            if not cloudinary_response:
+                return {
+                    'error': 'Error deleting image'
+                }, 400
+
+            product.status = False
+
+            db.session.commit()
+
+            return {
+                'message': 'Product deleted successfully'
+            }, 200
+        except Exception as e:
+            return {
+                'error': str(e)
+            }, 400
