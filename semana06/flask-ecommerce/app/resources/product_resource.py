@@ -4,6 +4,9 @@ from pydantic import ValidationError
 from app.schemas.product_schema import ProductSchema
 from app.models.product_model import Product
 from db import db
+from app.utils.helpers import CloudinaryHelper
+
+cloudinary_helper = CloudinaryHelper()
 
 class ProductResource(Resource):
     def post(self):
@@ -28,12 +31,17 @@ class ProductResource(Resource):
                     'error': 'Invalid image type'
                 }, 400
                 
-            # SUBIR LA IMAGEN A UN SERVIDOR DE STORAGE
+            secure_url, public_id = cloudinary_helper.upload_image(image, 'products')
+
+            if not secure_url:
+                return {
+                    'error': 'Error uploading image'
+                }, 400
 
             product = Product(
                 name=validated_data.name,
                 description=validated_data.description,
-                image='',
+                image=public_id,
                 brand=validated_data.brand,
                 size=validated_data.size,
                 price=validated_data.price,
@@ -51,7 +59,7 @@ class ProductResource(Resource):
                     'code': f'P-{str(product.id).zfill(4)}',
                     'name': product.name,
                     'description': product.description,
-                    'image': '',
+                    'image': secure_url,
                     'brand': product.brand,
                     'size': product.size,
                     'price': product.price,
@@ -80,7 +88,7 @@ class ProductResource(Resource):
                     'code': f'P-{str(product.id).zfill(4)}',
                     'name': product.name,
                     'description': product.description,
-                    'image': '',
+                    'image': cloudinary_helper.get_secure_url(product.image),
                     'brand': product.brand,
                     'size': product.size,
                     'price': product.price,
