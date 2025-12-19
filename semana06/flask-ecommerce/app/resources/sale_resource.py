@@ -9,6 +9,53 @@ from app.models.sale_model import Sale
 from db import db
 
 class SaleResource(Resource):
+    def get(self):
+        try:
+            sales = Sale.query.all()
+
+            response = []
+            for sale in sales:
+                sale_details = []
+                for detail in sale.sale_details:
+                    detail_dict = {
+                        'id': detail.id,
+                        'quantity': detail.quantity,
+                        'subtotal': detail.subtotal,
+                        'product': {
+                            'id': detail.product.id,
+                            'name': detail.product.name,
+                            'description': detail.product.description
+                        },
+                    }
+                    sale_details.append(detail_dict)
+
+                sale_dict = {
+                    'id': sale.id,
+                    'code': sale.code,
+                    'total': sale.total,
+                    'status': sale.status.value,
+                    'created_at': str(sale.created_at),
+                    'customer': {
+                        'id': sale.customer.id,
+                        'name': sale.customer.name,
+                        'last_name': sale.customer.last_name,
+                        'email': sale.customer.email,
+                        'document_number': sale.customer.document_number,
+                        'address': sale.customer.address
+                    },
+                    'sale_details': sale_details
+                }
+                response.append(sale_dict)
+
+            return {
+                'message': 'Sales fetched successfully',
+                'data': response
+            }, 200
+        except Exception as e:
+            return {
+                'error': str(e)
+            }, 400
+
     def post(self):
         try:
             data = request.get_json()

@@ -5,6 +5,7 @@ from sqlalchemy import (
     Float,
     ForeignKey,
 )
+from sqlalchemy.orm import relationship
 
 class SaleDetail(db.Model):
     __tablename__ = 'sale_details'
@@ -15,3 +16,5 @@ class SaleDetail(db.Model):
     subtotal = Column(Float, nullable=False)
     product_id = Column(Integer, ForeignKey('products.id'), nullable=False)
     sale_id = Column(Integer, ForeignKey('sales.id'), nullable=False)
+
+    product = relationship('Product')

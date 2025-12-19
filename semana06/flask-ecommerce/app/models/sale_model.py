@@ -27,4 +27,5 @@ class Sale(db.Model):
     created_at = Column(DateTime, default=func.now())
     customer_id = Column(Integer, ForeignKey('customers.id'), nullable=False)
 
+    customer = relationship('Customer')
     sale_details = relationship('SaleDetail')
