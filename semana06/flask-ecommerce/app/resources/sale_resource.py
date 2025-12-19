@@ -3,6 +3,10 @@ from flask_restful import Resource
 from app.schemas.sale_schema import SaleSchema
 from pydantic import ValidationError
 from app.models.product_model import Product
+from app.models.sale_detail_model import SaleDetail
+from app.models.customer_model import Customer
+from app.models.sale_model import Sale
+from db import db
 
 class SaleResource(Resource):
     def post(self):
@@ -10,36 +14,91 @@ class SaleResource(Resource):
             data = request.get_json()
             validated_data = SaleSchema(**data)
 
-            for sale_detail in validated_data.sale_details:
-                product = Product.query.get(sale_detail.product_id)
+            sale_details = []
+            for new_sale_detail in validated_data.sale_details:
+                product = Product.query.get(new_sale_detail.product_id)
 
                 if not product:
                     return {
                         'error': 'Product not found'
                     }, 404
                 
-                if product.stock < sale_detail.quantity:
+                if product.status == False:
+                    return {
+                        'error': 'Product is out of stock'
+                    }, 404
+                
+                if product.stock < new_sale_detail.quantity:
                     return {
                         'error': 'Not enough stock'
                     }, 400
                 
-                product.stock -= sale_detail.quantity
+                product.stock -= new_sale_detail.quantity
 
-            # Validar el stock de los productos
+                new_sale_detail = SaleDetail(
+                    quantity=new_sale_detail.quantity,
+                    price=new_sale_detail.price,
+                    subtotal=new_sale_detail.subtotal,
+                    product_id=new_sale_detail.product_id
+                )
+                sale_details.append(new_sale_detail)
 
-            # Crear la venta
+            customer = Customer.query.filter_by(
+                document_number=validated_data.customer.document_number
+            ).first()
 
-            # Descontar el stock de los productos
+            if not customer:
+                customer = Customer(
+                    name=validated_data.customer.name,
+                    last_name=validated_data.customer.last_name,
+                    email=validated_data.customer.email,
+                    document_number=validated_data.customer.document_number,
+                    address=validated_data.customer.address
+                )
+                db.session.add(customer)
+            else:
+                customer.name = validated_data.customer.name
+                customer.last_name = validated_data.customer.last_name
+                customer.email = validated_data.customer.email
+                customer.document_number = validated_data.customer.document_number
+                customer.address = validated_data.customer.address
 
-            # Generar la factura
+            db.session.flush()
 
-            # Finalizar la transacción
+            last_sale = Sale.query.order_by(
+                Sale.id.desc()
+            ).first()
+            sale_code = 'B-0001'
+            if last_sale:
+                last_code = last_sale.code
+                last_number = int(last_code.split('-')[1])
+                new_number = last_number + 1
+                sale_code = f'B-{str(new_number).zfill(4)}'
+
+            sale = Sale(
+                code=sale_code,
+                total=validated_data.total,
+                customer_id=customer.id,
+                sale_details=sale_details
+            )
+
+            db.session.add(sale)
+            db.session.commit()
+
+            return {
+                'message': 'Sale created successfully',
+                'data': {
+                    'id': sale.id,
+                    'code': sale.code,
+                    'total': sale.total
+                }
+            }, 200
         except ValidationError as e:
             return {
                 'error': e.errors()
             }, 400
         except Exception as e:
-            # Rollback de las transacciones
+            db.session.rollback()
             return {
                 'error': str(e)
             }, 400

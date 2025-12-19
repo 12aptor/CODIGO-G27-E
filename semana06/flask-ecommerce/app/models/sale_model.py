@@ -9,6 +9,7 @@ from sqlalchemy import (
     func,
     ForeignKey,
 )
+from sqlalchemy.orm import relationship
 from enum import Enum
 
 class SaleStatus(Enum):
@@ -25,3 +26,5 @@ class Sale(db.Model):
     status = Column(SqlEnum(SaleStatus), default=SaleStatus.PENDING)
     created_at = Column(DateTime, default=func.now())
     customer_id = Column(Integer, ForeignKey('customers.id'), nullable=False)
+
+    sale_details = relationship('SaleDetail')
