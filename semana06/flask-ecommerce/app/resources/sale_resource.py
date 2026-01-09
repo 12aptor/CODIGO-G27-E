@@ -55,16 +55,16 @@ class SaleResource(Resource):
             return {
                 'error': str(e)
             }, 400
-
+        
     def post(self):
         try:
             data = request.get_json()
             validated_data = SaleSchema(**data)
 
-            sale_details = []
-            for new_sale_detail in validated_data.sale_details:
-                product = Product.query.get(new_sale_detail.product_id)
-
+            new_sale_details = []
+            for sale_detail in validated_data.sale_details:
+                product = Product.query.get(sale_detail.product_id)
+                
                 if not product:
                     return {
                         'error': 'Product not found'
@@ -74,22 +74,22 @@ class SaleResource(Resource):
                     return {
                         'error': 'Product is out of stock'
                     }, 404
-                
-                if product.stock < new_sale_detail.quantity:
+
+                if product.stock < sale_detail.quantity:
                     return {
                         'error': 'Not enough stock'
                     }, 400
-                
-                product.stock -= new_sale_detail.quantity
+
+                product.stock -= sale_detail.quantity
 
                 new_sale_detail = SaleDetail(
-                    quantity=new_sale_detail.quantity,
-                    price=new_sale_detail.price,
-                    subtotal=new_sale_detail.subtotal,
-                    product_id=new_sale_detail.product_id
+                    quantity=sale_detail.quantity,
+                    price=sale_detail.price,
+                    subtotal=sale_detail.subtotal,
+                    product_id=sale_detail.product_id
                 )
-                sale_details.append(new_sale_detail)
-
+                new_sale_details.append(new_sale_detail)
+            
             customer = Customer.query.filter_by(
                 document_number=validated_data.customer.document_number
             ).first()
@@ -107,11 +107,9 @@ class SaleResource(Resource):
                 customer.name = validated_data.customer.name
                 customer.last_name = validated_data.customer.last_name
                 customer.email = validated_data.customer.email
-                customer.document_number = validated_data.customer.document_number
                 customer.address = validated_data.customer.address
 
             db.session.flush()
-
             last_sale = Sale.query.order_by(
                 Sale.id.desc()
             ).first()
@@ -126,7 +124,7 @@ class SaleResource(Resource):
                 code=sale_code,
                 total=validated_data.total,
                 customer_id=customer.id,
-                sale_details=sale_details
+                sale_details=new_sale_details
             )
 
             db.session.add(sale)
@@ -145,7 +143,6 @@ class SaleResource(Resource):
                 'error': e.errors()
             }, 400
         except Exception as e:
-            db.session.rollback()
             return {
                 'error': str(e)
-            }, 400
+            }, 500
