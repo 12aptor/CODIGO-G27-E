@@ -1,12 +1,26 @@
 from pathlib import Path
+from dotenv import load_dotenv
+import os
 
+load_dotenv()
+
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-x%6j(1^kp5yyb=!0-*d(=0h@2x*wqkurq3g89h&9(2p+)nf80='
 
+# Quick-start development settings - unsuitable for production
+# See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
+
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = 'django-insecure-4cfn(^!n0!3jtv0h52o2mvj6_u=5=n75*a0l_p$*^8(a=c#ans'
+
+# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 ALLOWED_HOSTS = []
+
+
+# Application definition
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -15,7 +29,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'almacen',
+
+    'authentication',
+    'services',
+    'transactions',
 ]
 
 MIDDLEWARE = [
@@ -28,7 +45,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'django_intro.urls'
+ROOT_URLCONF = 'django_barbershop.urls'
 
 TEMPLATES = [
     {
@@ -45,7 +62,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'django_intro.wsgi.application'
+WSGI_APPLICATION = 'django_barbershop.wsgi.application'
 
 
 # Database
@@ -54,11 +71,11 @@ WSGI_APPLICATION = 'django_intro.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'django_intro',
-        'USER': 'postgres',
-        'PASSWORD': 'root',
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('DB_USER'),
+        'PASSWORD': os.getenv('DB_PASSWORD'),
+        'HOST': os.getenv('DB_HOST'),
+        'PORT': os.getenv('DB_PORT'),
     }
 }
 
@@ -98,3 +115,5 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+AUTH_USER_MODEL = 'authentication.User'
