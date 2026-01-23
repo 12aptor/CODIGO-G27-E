@@ -6,9 +6,14 @@ class RoleSerializer(serializers.ModelSerializer):
         model = Role
         fields = '__all__'
 
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        exclude = ('is_staff', 'is_superuser', 'last_login')
+
 class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
-        models = User
+        model = User
         exclude = ('is_staff', 'is_superuser', 'last_login')
         read_only_fields = ('status',)
 
