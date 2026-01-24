@@ -1,4 +1,5 @@
 from rest_framework import generics
+from rest_framework.permissions import IsAuthenticated
 from datetime import time
 from .models import *
 from .serializers import *
@@ -6,6 +7,7 @@ from .serializers import *
 class ServiceView(generics.ListCreateAPIView):
     queryset = Service.objects.all()
     serializer_class = ServiceSerializer
+    permission_classes = [IsAuthenticated]
 
 class ManageServiceView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Service.objects.all()

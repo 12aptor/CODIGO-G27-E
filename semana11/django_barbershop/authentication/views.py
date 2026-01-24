@@ -1,4 +1,5 @@
 from rest_framework import generics
+from rest_framework_simplejwt.views import TokenObtainPairView
 from .models import *
 from .serializers import *
 
@@ -13,5 +14,5 @@ class ManageRoleView(generics.RetrieveUpdateDestroyAPIView):
 class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
 
-class LoginView():
-    pass
+class LoginView(TokenObtainPairView):
+    serializer_class = LoginSerializer
